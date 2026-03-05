@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life in Days Calculator</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --success-color: #4CAF50;
+            --error-color: #f44336;
+            --light-bg: #f0f0f0;
+            --info-bg: #e7f3fe;
+            --border-radius: 5px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="date"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0b7dda;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: var(--error-color);
+            padding: 10px;
+            background-color: #ffebee;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--success-color);
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .milestone {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--info-bg);
+            border-left: 4px solid var(--primary-color);
+            border-radius: var(--border-radius);
+        }
+    </style>
+</head>
+<body>
+    <h1>Life in Days Calculator</h1>
+    <p>Enter your birthday to see how many days you've lived out of 30,000 (average lifetime):</p>
+    
+    <div class="error" id="errorMessage" role="alert" aria-live="polite"></div>
+
+    <div class="input-group">
+        <input 
+            type="date" 
+            id="birthDate" 
+            aria-label="Enter your birth date"
+            max="">
+        <button 
+            id="calculateBtn" 
+            onclick="calculateDays()"
+            aria-label="Calculate your life in days">
+            Calculate
+        </button>
+        <button 
+            id="clearBtn" 
+            onclick="clearForm()"
+            aria-label="Clear the form and results"
+            style="background-color: var(--error-color);">
+            Clear
+        </button>
+    </div>
+
+    <div id="result" class="result" role="region" aria-live="polite" aria-label="Life calculation results">
+        <p id="daysLived"></p>
+        <p id="daysRemaining"></p>
+        <p id="percentageComplete"></p>
+        <div class="progress-bar">
+            <div id="progressBar" class="progress"></div>
+        </div>
+        <div class="milestone" id="targetDate"></div>
+    </div>
+
+    <script>
+        // Set max date to today
+        document.getElementById('birthDate').max = new Date().toISOString().split('T')[0];
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function calculateDays() {
+            hideError();
+            
+            const birthDateInput = document.getElementById('birthDate').value;
+
+            // Validation
+            if (!birthDateInput) {
+                showError('Please select a birth date');
+                return;
+            }
+
+            const birthDate = new Date(birthDateInput);
+            const today = new Date();
+
+            // Check for future dates
+            if (birthDate > today) {
+                showError('Birth date cannot be in the future');
+                return;
+            }
+
+            // Check for unrealistic dates
+            const age = today.getFullYear() - birthDate.getFullYear();
+            if (age > 150) {
+                showError('Please enter a valid birth date');
+                return;
+            }
+
+            try {
+                const totalDays = 30000;
+
+                // Calculate days lived
+                const timeDiff = today - birthDate;
+                const daysLived = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                
+                // Calculate remaining days
+                const daysRemaining = totalDays - daysLived;
+                
+                // Calculate percentage
+                const percentage = (daysLived / totalDays * 100).toFixed(2);
+
+                // Calculate target date (30,000 days from birth)
+                const targetDate = new Date(birthDate);
+                targetDate.setDate(targetDate.getDate() + totalDays);
+
+                // Format target date
+                const options = { 
+                    weekday: 'long',
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                };
+                const formattedTargetDate = targetDate.toLocaleDateString('en-US', options);
+
+                // Calculate years and days
+                const yearsLived = Math.floor(daysLived / 365.25);
+                const yearsRemaining = Math.floor(daysRemaining / 365.25);
+
+                // Display results
+                document.getElementById('result').classList.add('show');
+                document.getElementById('daysLived').textContent = 
+                    `Days lived: ${daysLived.toLocaleString()} days`;
+                document.getElementById('daysRemaining').textContent = 
+                    `Days remaining: ${daysRemaining.toLocaleString()} days`;
+                document.getElementById('percentageComplete').textContent = 
+                    `You have lived ${percentage}% of 30,000 days`;
+                document.getElementById('targetDate').innerHTML = 
+                    `<strong>Your 30,000th day will be:</strong><br>${formattedTargetDate}` +
+                    `<br><br>Current age: ${yearsLived} years` +
+                    `<br>Age at 30,000 days: ${Math.floor(totalDays/365.25)} years` +
+                    `<br>Years remaining: ${yearsRemaining} years`;
+
+                // Update progress bar
+                document.getElementById('progressBar').style.width = `${percentage}%`;
+
+            } catch (error) {
+                showError('An error occurred while calculating. Please try again.');
+                console.error('Calculation error:', error);
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('birthDate').value = '';
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('progressBar').style.width = '0%';
+            hideError();
+        }
+
+        // Allow Enter key to trigger calculation
+        document.getElementById('birthDate').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateDays();
+            }
+        });
+    </script>
+</body>
+</html>

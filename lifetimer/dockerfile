@@ -1,0 +1,15 @@
+
+# Base Image 
+FROM nginx:alpine
+
+# MAINTAINER / AUTHOR of the Dockerfile
+LABEL org.opencontainers.image.authors="artur@estanqueiro.com.br"
+
+#Copy the index.html file
+COPY index-app-v2.html /usr/share/nginx/html/index.html
+
+#Expose Nginx Port
+EXPOSE 80
+
+#Start NginxService 
+CMD ["nginx", "-g", "daemon off;"]
