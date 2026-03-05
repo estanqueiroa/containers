@@ -12,7 +12,7 @@ Repository [link](https://hub.docker.com/repositories/estanqueiroa)
 
 * Base image: nginx:alpine
 * Exposed port: 80
-* Image size: ~25MB
+* Image size: ~45MB
 * Repository: docker.io/estanqueiroa/lifetimer
 
 # Docker Build
